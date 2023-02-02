@@ -1,31 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-present, Egret Technology.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
 var __reflect = (this && this.__reflect) || function (p, c, t) {
     p.__class__ = c, t ? t.push(c) : t = [c], p.__types__ = p.__types__ ? t.concat(p.__types__) : t;
 };
@@ -71,10 +43,134 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+/** 游戏舞台矩阵 */
+var MAX_W = 4;
+var MAX_H = 4;
+/** 卡片配置 */
+var CARD_CONFIG = {
+    /** 卡片宽 */
+    CARD_W: 100,
+    /** 卡片高 */
+    CARD_H: 100,
+    /** 卡片渲染间隔 */
+    CARD_OFFSET: 15,
+    /** 生成初始得分卡片的数量 */
+    CARD_RAND_NUM: 2,
+    '4096': {
+        /** 卡片颜色 */
+        color: 0xFDFDA6,
+        /** 卡片得分 */
+        score: 40
+    },
+    '2048': {
+        /** 卡片颜色 */
+        color: 0x000000,
+        /** 卡片得分 */
+        score: 40
+    },
+    '1024': {
+        /** 卡片颜色 */
+        color: 0xff0000,
+        /** 卡片得分 */
+        score: 35
+    },
+    '512': {
+        /** 卡片颜色 */
+        color: 0xff80c0,
+        /** 卡片得分 */
+        score: 25
+    },
+    '256': {
+        /** 卡片颜色 */
+        color: 0x5ff3e1,
+        /** 卡片得分 */
+        score: 20
+    },
+    '128': {
+        /** 卡片颜色 */
+        color: 0x008080,
+        /** 卡片得分 */
+        score: 15
+    },
+    '64': {
+        /** 卡片颜色 */
+        color: 0x8000ff,
+        /** 卡片得分 */
+        score: 10
+    },
+    '32': {
+        /** 卡片颜色 */
+        color: 0xfa00df,
+        /** 卡片得分 */
+        score: 8
+    },
+    '16': {
+        /** 卡片颜色 */
+        color: 0x804040,
+        /** 卡片得分 */
+        score: 6
+    },
+    '8': {
+        /** 卡片颜色 */
+        color: 0xFDDCBD,
+        /** 卡片得分 */
+        score: 4
+    },
+    '4': {
+        /** 卡片颜色 */
+        color: 0x0080ff,
+        /** 卡片得分 */
+        score: 2
+    },
+    '2': {
+        /** 卡片颜色 */
+        color: 0xef9559,
+        /** 卡片得分 */
+        score: 1
+    },
+    '0': {
+        /** 卡片颜色 */
+        color: 0xbb997c,
+        /** 卡片得分 */
+        score: 0
+    },
+};
+/** 卡片类型 */
+var CARD_TYPE = {
+    '4096': '4096',
+    '2048': '2048',
+    '1024': '1024',
+    '512': '512',
+    '256': '256',
+    '128': '128',
+    '64': '64',
+    '32': '32',
+    '16': '16',
+    '8': '8',
+    '4': '4',
+    '2': '2',
+    '0': '0',
+};
+/** 获取二位数组随机值 */
+function getRandNum(i, j) {
+    var randomNum = Math.ceil(Math.random() * (i * j - 1));
+    var x = 0, y = 0;
+    if (randomNum <= i) {
+        x = randomNum;
+        y = 0;
+    }
+    else {
+        x = randomNum % i;
+        y = Math.floor(randomNum / i);
+    }
+    return { x: x, y: y };
+}
 var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
         var _this = _super.call(this) || this;
+        /** 游戏卡片管理器 */
+        _this.CardMannager = null;
         _this.addEventListener(egret.Event.ADDED_TO_STAGE, _this.onAddToStage, _this);
         return _this;
     }
@@ -147,6 +243,7 @@ var Main = (function (_super) {
      * Create a game scene
      */
     Main.prototype.createGameScene = function () {
+        this.CardMannager = new GameCardMannager(this);
     };
     /**
      * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
@@ -188,3 +285,126 @@ var Main = (function (_super) {
     return Main;
 }(egret.DisplayObjectContainer));
 __reflect(Main.prototype, "Main");
+var GameCardMannager = (function () {
+    function GameCardMannager(stage) {
+        /** 卡片池 */
+        this.cardPool = [];
+        /** 游戏舞台 */
+        this.stage = null;
+        this.posX = 0;
+        this.posY = 0;
+        this.stage = stage;
+        this._init();
+    }
+    /** 初始化卡片池，渲染棋盘，生成卡片 */
+    GameCardMannager.prototype._init = function () {
+        var key = 0;
+        var posX = this.posX = (750 - (CARD_CONFIG.CARD_W + CARD_CONFIG.CARD_OFFSET) * MAX_W) / 2 + CARD_CONFIG.CARD_OFFSET;
+        var posY = this.posY = (1338 - (CARD_CONFIG.CARD_H + CARD_CONFIG.CARD_OFFSET) * MAX_H) / 2 + CARD_CONFIG.CARD_OFFSET;
+        for (var i = 0; i < MAX_H; i++) {
+            this.cardPool.push([]);
+        }
+        this._renderCardCb(posX, posY);
+        this.randomCreate(CARD_CONFIG.CARD_RAND_NUM);
+    };
+    /**
+     * 渲染游戏棋盘
+     * @param posX 偏移x
+     * @param posY 偏移y
+     */
+    GameCardMannager.prototype._renderCardCb = function (posX, posY) {
+        for (var i = 0; i < MAX_W; i++) {
+            for (var j = 0; j < MAX_H; j++) {
+                var card = new GameCard(-1);
+                card.$setX(i * (CARD_CONFIG.CARD_W + CARD_CONFIG.CARD_OFFSET) + posX);
+                card.$setY(j * (CARD_CONFIG.CARD_H + CARD_CONFIG.CARD_OFFSET) + posY);
+                this.stage.addChild(card);
+            }
+        }
+    };
+    /**
+     * 随机生成卡片
+     * @param num 生成卡片数量
+     */
+    GameCardMannager.prototype.randomCreate = function (num) {
+        for (var i = 0; i < num; i++) {
+            var _a = getRandNum(MAX_W, MAX_H), x = _a.x, y = _a.y;
+            if (!this.cardPool[x]) {
+                this.cardPool[x] = [];
+            }
+            var card = new GameCard(Date.now(), CARD_TYPE[2]);
+            card.$setX(x * (CARD_CONFIG.CARD_W + CARD_CONFIG.CARD_OFFSET) + this.posX);
+            card.$setY(y * (CARD_CONFIG.CARD_H + CARD_CONFIG.CARD_OFFSET) + this.posY);
+            this.cardPool[x][y] = card;
+            this.stage.addChild(card);
+        }
+        console.log(this.cardPool);
+    };
+    return GameCardMannager;
+}());
+__reflect(GameCardMannager.prototype, "GameCardMannager");
+var GameCard = (function (_super) {
+    __extends(GameCard, _super);
+    function GameCard(key, type) {
+        if (type === void 0) { type = CARD_TYPE[0]; }
+        var _this = _super.call(this) || this;
+        /** 唯一的CardKey */
+        _this.key = null;
+        /** 卡片类型 */
+        _this.cardType = CARD_TYPE[0];
+        /** 得分 */
+        _this.score = 0;
+        /** 颜色 */
+        _this.color = CARD_CONFIG[0].color;
+        /** 卡片shape */
+        _this.shape = null;
+        /** 文案 */
+        _this.lable = null;
+        _this.key = key;
+        _this._init(type);
+        return _this;
+    }
+    GameCard.prototype._init = function (type) {
+        this.setCardType(type);
+    };
+    /**
+     * 设置卡片类型
+     * @param {CARD_TYPE} type 卡片类型
+     */
+    GameCard.prototype.setCardType = function (type) {
+        this.cardType = type;
+        this.createCard();
+        this.addLabel();
+    };
+    /** 创建卡片 */
+    GameCard.prototype.createCard = function () {
+        if (this.shape) {
+            this.removeChild(this.shape);
+        }
+        console.log('创建', this.cardType);
+        var Shape = this.shape = new egret.Shape();
+        Shape.graphics.beginFill(CARD_CONFIG[this.cardType].color);
+        Shape.graphics.drawRoundRect(0, 0, CARD_CONFIG.CARD_W, CARD_CONFIG.CARD_H, 30, 30);
+        Shape.graphics.endFill();
+        Shape.x = 0;
+        Shape.y = 0;
+        this.addChild(Shape);
+    };
+    GameCard.prototype.addLabel = function () {
+        if (this.lable) {
+            this.removeChild(this.lable);
+        }
+        /*** 本示例关键代码段开始 ***/
+        var label = this.lable = new egret.TextField();
+        label.text = this.cardType;
+        //设置颜色等文本属性
+        label.textColor = 0xffffff;
+        label.size = 56;
+        label.bold = true;
+        label.x = (CARD_CONFIG.CARD_W - label.width) / 2;
+        label.y = (CARD_CONFIG.CARD_H - label.height) / 2;
+        this.addChild(label);
+    };
+    return GameCard;
+}(egret.DisplayObjectContainer));
+__reflect(GameCard.prototype, "GameCard");
